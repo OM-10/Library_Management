@@ -3,15 +3,19 @@
 
 using namespace deepstate;
 
-TEST(LibraryManagementSystem, BookAndStudentOperations) {
+TEST(LibraryManagementSystem, ComprehensiveTests) {
     LibraryManagementSystem lms;
 
-    // Generate random IDs and names for books and students
+    // Generate random IDs and names for books, students, and study rooms
     int bookId = DeepState_IntInRange(1, 1000);
     int studentId = DeepState_IntInRange(1, 1000);
     string bookTitle = DeepState_CStr_C("");
     string bookAuthor = DeepState_CStr_C("");
     string studentName = DeepState_CStr_C("");
+
+    int roomNumber = DeepState_IntInRange(1, 100);
+    int capacity = DeepState_IntInRange(1, 10);
+    bool isGroup = DeepState_Bool();
 
     // Add a book to the library
     lms.addBook(bookId, bookTitle, bookAuthor);
@@ -51,16 +55,6 @@ TEST(LibraryManagementSystem, BookAndStudentOperations) {
     string invalidStudentIssueResult = lms.issueBook(bookId, invalidStudentId);
     ASSERT_TRUE(invalidStudentIssueResult == "Student with ID " + to_string(invalidStudentId) + " not found.")
         << "Failed to catch non-existent student issue.";
-}
-
-TEST(LibraryManagementSystem, StudyRoomBooking) {
-    LibraryManagementSystem lms;
-
-    // Generate random room numbers and student names
-    int roomNumber = DeepState_IntInRange(1, 100);
-    int capacity = DeepState_IntInRange(1, 10);
-    bool isGroup = DeepState_Bool();
-    string studentName = DeepState_CStr_C("");
 
     // Add a study room
     lms.addStudyRoom(roomNumber, capacity, isGroup);
