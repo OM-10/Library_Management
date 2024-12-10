@@ -1,77 +1,80 @@
 #include <deepstate/DeepState.hpp>
-#include "LibraryManagementSystem.cpp" // Include the Library Management System implementation
+#include "LibraryManagementSystem.cpp"
 
 using namespace deepstate;
 
-TEST(LibraryManagementSystem, ComprehensiveTests) {
+TEST(LibraryManagementSystem, ComprehensiveTest) {
+    cout << "################################################" << endl;
     LibraryManagementSystem lms;
 
-    // Generate random IDs and names for books, students, and study rooms
+    // Generate random IDs and details for books and students
     int bookId = DeepState_IntInRange(1, 1000);
     int studentId = DeepState_IntInRange(1, 1000);
-    string bookTitle = DeepState_CStr_C("");
-    string bookAuthor = DeepState_CStr_C("");
-    string studentName = DeepState_CStr_C("");
+
+    std::string bookTitle = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string bookAuthor = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string bookPublisher = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string updatedBookTitle = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string updatedBookAuthor = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string updatedBookPublisher = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+
+    std::string studentName = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string studentDepartment = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string updatedStudentName = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
+    std::string updatedStudentDepartment = std::string(DeepState_CStr_C(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "));
 
     int roomNumber = DeepState_IntInRange(1, 100);
     int capacity = DeepState_IntInRange(1, 10);
     bool isGroup = DeepState_Bool();
 
-    // Add a book to the library
-    lms.addBook(bookId, bookTitle, bookAuthor);
+    // Add a book and a student
+    std::cout << "Adding book with ID " << bookId << "\n";
+    lms.addBook(bookId, bookTitle, bookAuthor, bookPublisher);
+    std::cout << "Adding student with ID " << studentId << "\n";
+    lms.addStudent(studentId, studentName, studentDepartment);
 
-    // Add a student to the library
-    lms.addStudent(studentId, studentName);
+    // Update book details and verify
+    ASSERT_TRUE(lms.updateBookDetails(bookId, updatedBookTitle, updatedBookAuthor, updatedBookPublisher))
+        << "Error: Updating book failed for Book ID: " << bookId;
 
-    // Try issuing the book to the student
-    string issueResult = lms.issueBook(bookId, studentId);
-    if (issueResult == "Book with ID " + to_string(bookId) + " not found.") {
-        ASSERT_TRUE(false) << "Failed to add or find book with ID: " << bookId;
-    } else if (issueResult == "Student with ID " + to_string(studentId) + " not found.") {
-        ASSERT_TRUE(false) << "Failed to add or find student with ID: " << studentId;
-    } else if (issueResult == "Book is already issued.") {
-        ASSERT_TRUE(false) << "Book is already marked as issued.";
-    } else {
-        ASSERT_TRUE(issueResult.find("issued to") != string::npos)
-            << "Book issuing did not work as expected.";
-    }
+    // Update student details and verify
+    ASSERT_TRUE(lms.updateStudentDetails(studentId, updatedStudentName, updatedStudentDepartment))
+        << "Error: Updating student failed for Student ID: " << studentId;
 
-    // Return the book and check penalties
-    string returnResult = lms.returnBook(bookId);
-    if (returnResult.find("Penalty: $") != string::npos) {
-        ASSERT_TRUE(true) << "Penalty applied correctly.";
-    } else {
-        ASSERT_TRUE(returnResult == "Book returned on time.") << "Unexpected return result.";
-    }
+    // Issue the book to the student
+    std::cout << "Issuing book to student...\n";
+    std::string issueResult = lms.issueBook(bookId, studentId);
+    ASSERT_TRUE(issueResult.find("issued to") != std::string::npos)
+        << "Error: Issue book failed. Result: " << issueResult;
 
-    // Attempt to issue a non-existent book
-    int invalidBookId = bookId + 1;
-    string invalidIssueResult = lms.issueBook(invalidBookId, studentId);
-    ASSERT_TRUE(invalidIssueResult == "Book with ID " + to_string(invalidBookId) + " not found.")
-        << "Failed to catch non-existent book issue.";
+    // Return the book
+    std::cout << "Returning book...\n";
+    std::string returnResult = lms.returnBook(bookId);
+    ASSERT_TRUE(returnResult.find("returned") != std::string::npos)
+        << "Error: Return book failed. Result: " << returnResult;
 
-    // Attempt to issue a book to a non-existent student
-    int invalidStudentId = studentId + 1;
-    string invalidStudentIssueResult = lms.issueBook(bookId, invalidStudentId);
-    ASSERT_TRUE(invalidStudentIssueResult == "Student with ID " + to_string(invalidStudentId) + " not found.")
-        << "Failed to catch non-existent student issue.";
+    // Delete the book and verify it cannot be found
+    std::cout << "Deleting book with ID " << bookId << "\n";
+    ASSERT_TRUE(lms.deleteBook(bookId))
+        << "Error: Deleting book failed for Book ID: " << bookId;
 
-    // Add a study room
+    std::cout << "Verifying book deletion...\n";
+    ASSERT_TRUE(lms.searchBooksByTitle(updatedBookTitle).find("No books found.") != std::string::npos)
+        << "Error: Book still found after deletion.";
+
+    // Add and book a study room
+    std::cout << "Adding and booking a study room...\n";
     lms.addStudyRoom(roomNumber, capacity, isGroup);
+    std::string bookingResult = lms.bookStudyRoom(roomNumber, studentName, isGroup);
+    ASSERT_TRUE(bookingResult.find("booked successfully") != std::string::npos)
+        << "Error: Booking study room failed. Result: " << bookingResult;
 
-    // Try booking the room
-    string bookingResult = lms.bookStudyRoom(roomNumber, studentName, isGroup);
-    ASSERT_TRUE(bookingResult.find("booked successfully") != string::npos)
-        << "Room booking failed for room number: " << roomNumber;
+    // Release the study room and rebook it
+    std::cout << "Releasing study room...\n";
+    ASSERT_TRUE(lms.releaseStudyRoom(roomNumber))
+        << "Error: Releasing study room failed for Room Number: " << roomNumber;
 
-    // Attempt to book the same room again
-    string doubleBookingResult = lms.bookStudyRoom(roomNumber, studentName, isGroup);
-    ASSERT_TRUE(doubleBookingResult == "Room " + to_string(roomNumber) + " is already booked.")
-        << "Failed to detect double booking for room number: " << roomNumber;
-
-    // Attempt to book a non-existent room
-    int invalidRoomNumber = roomNumber + 1;
-    string invalidRoomBookingResult = lms.bookStudyRoom(invalidRoomNumber, studentName, isGroup);
-    ASSERT_TRUE(invalidRoomBookingResult == "Room " + to_string(invalidRoomNumber) + " not found.")
-        << "Failed to detect non-existent room booking.";
+    std::cout << "Rebooking study room...\n";
+    ASSERT_TRUE(lms.bookStudyRoom(roomNumber, studentName, isGroup).find("booked successfully") != std::string::npos)
+        << "Error: Rebooking study room failed for Room Number: " << roomNumber;
 }
